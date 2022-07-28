@@ -1,0 +1,49 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Hôte : 127.0.0.1
+-- Généré le : lun. 25 juil. 2022 à 19:35
+-- Version du serveur : 10.4.24-MariaDB
+-- Version de PHP : 8.1.6
+
+
+--
+-- Base de données : `google`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `cool`
+--
+
+CREATE TABLE `cool` (
+  `id` int(3) NOT NULL,
+  `dd` int(3) NOT NULL,
+  `ff` int(3) NOT NULL,
+  `gg` int(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `cool`
+--
+
+
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `made`
+--
+
+CREATE TABLE `made` (
+  `id` int(3) NOT NULL,
+  `a` int(3) NOT NULL,
+  `zz` int(3) NOT NULL,
+  `xx` int(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `made`
+--

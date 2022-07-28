@@ -1,0 +1,69 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Hôte : 127.0.0.1
+-- Généré le : lun. 25 juil. 2022 à 19:35
+-- Version du serveur : 10.4.24-MariaDB
+-- Version de PHP : 8.1.6
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de données : `google`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `cool`
+--
+
+CREATE TABLE `cool` (
+  `id` int(3) NOT NULL,
+  `dd` int(3) NOT NULL,
+  `ff` int(3) NOT NULL,
+  `gg` int(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `cool`
+--
+
+INSERT INTO `cool` (`id`, `dd`, `ff`, `gg`) VALUES
+(6, 7, 8, 9),
+(4, 32, 1, 5);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `made`
+--
+
+CREATE TABLE `made` (
+  `id` int(3) NOT NULL,
+  `a` int(3) NOT NULL,
+  `zz` int(3) NOT NULL,
+  `xx` int(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Déchargement des données de la table `made`
+--
+
+INSERT INTO `made` (`id`, `a`, `zz`, `xx`) VALUES
+(1, 2, 3, 4),
+(5, 6, 7, 8);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
