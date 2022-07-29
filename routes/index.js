@@ -43,7 +43,7 @@ router.post('/upload', upload.single('file'),  function(req, res, next) {
           connection.release();
       });
     });
-    fs.writeFile('uploads/dbname', req.body.dbname, err => {
+    fs.writeFile('./dbname', req.body.dbname, err => {
       if (err) {
         console.error(err);
       }
@@ -89,15 +89,29 @@ router.get('/file-content',  function(req, res, next) {
 
 });
 
-router.post('/query',  function(req, res, next) {
+router.post('/query/:table',  function(req, res, next) {
   console.log(req.body.query);
+  console.log(req.params.table);
+  const dbname = fs.readFileSync('./dbname', 'utf8')
+  connection.getConnection(function(err, connection) {
+    connection.query("use " + dbname + " ;", function(err, rows) {
+      console.log(err);
+    });
+    connection.query(req.body.query, function(err, rows) {
+        console.log(err);
+        tables = rows;
+        //console.log(tables);
+        var jsoned = Object.values(JSON.parse(JSON.stringify(tables)));
+        console.log(jsoned);
+        connection.release();
+        res.send(jsoned);
+    });
+  });
 });
-
 router.get('/get-tables',  function(req, res, next) {
-  console.log(req.body.query);
   var dbname;
   let tables;
-  const data = fs.readFileSync('uploads/dbname', 'utf8')
+  const data = fs.readFileSync('./dbname', 'utf8')
   dbname = data;
   connection.getConnection(function(err, connection) {
     connection.query("use " + dbname + " ;", function(err, rows) {
@@ -106,13 +120,15 @@ router.get('/get-tables',  function(req, res, next) {
     connection.query("SELECT table_name FROM information_schema.tables WHERE table_schema ='"+dbname+"';", function(err, rows) {
         console.log(err);
         tables = rows;
-        console.log(tables);
+        //console.log(tables);
         connection.release();
         var all = [];
-        for(var v in tables){
-          console.log(v);
-          all.push(v.name);
-        }
+        var jsoned = Object.values(JSON.parse(JSON.stringify(tables)));
+        console.log(jsoned);
+        jsoned.forEach((v) => {
+          console.log(v.table_name);
+          all.push(v.table_name);
+        });
         res.send(all)
     });
   });
