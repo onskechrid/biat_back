@@ -24,6 +24,13 @@ let connection = mysql.createPool({
   database:'biat',
   multipleStatements: true
 });
+let co_db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database:'biat_report',
+  multipleStatements: true
+});
 router.post('/upload', upload.single('file'),  function(req, res, next) {
   //-----
   console.log(req.file);
@@ -134,7 +141,48 @@ router.get('/get-tables',  function(req, res, next) {
   });
 });
 
-
-
-
+router.get('/show-function',  function(req, res, next) {
+  co_db.getConnection(function(err, connection) {
+    co_db.query("use biat_report;", function(err, rows) {
+      console.log(err);
+    });
+    co_db.query("SELECT * from function;", function(err, rows) {
+        console.log(err);
+        res.send(rows)
+    });
+  });
+});
+router.get('/get-function/:id',  function(req, res, next) {
+  co_db.getConnection(function(err, connection) {
+    co_db.query("use biat_report;", function(err, rows) {
+      console.log(err);
+    });
+    co_db.query("SELECT * from function where id=" +req.params.id+ ";", function(err, rows) {
+        console.log(err);
+        res.send(rows[0])
+    });
+  });
+});
+router.post('/add-function',  function(req, res, next) {
+  co_db.getConnection(function(err, connection) {
+    co_db.query("use biat_report;", function(err, rows) {
+      console.log(err);
+    });
+    co_db.query("insert into function (query, status, name) values (\""+req.body.query+ "\" , " + req.body.status +" ,\"" + req.body.name + "\" );", function(err, rows) {
+        console.log(err);
+        res.send("done")
+    });
+  });
+});
+router.post('/mod-function/:id',  function(req, res, next) {
+  co_db.getConnection(function(err, connection) {
+    co_db.query("use biat_report;", function(err, rows) {
+      console.log(err);
+    });
+    co_db.query("update function set query=\""+req.body.query+"\", name=\""+req.body.name+"\" where id="+req.params.id+";", function(err, rows) {
+        console.log(err);
+        res.send("done")
+    });
+  });
+});
 module.exports = router;
