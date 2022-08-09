@@ -11,11 +11,19 @@ const path = require('path');
 const xlsx = require('xlsx');
 const FileSaver = require('file-saver')
 const Blob = require('node-blob');
+var pm2 = require('pm2');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   console.log(path.join(__dirname, "uploads"));
   res.render('index', { title: 'Express' });
+});
+router.get('/r', function(req, res, next) {
+  pm2.connect(function(err) {
+    if (err) throw err;
+    pm2.restart('app', function() {});
+    res.send("restarting...");
+  });
 });
 let connection = mysql.createPool({
   host: 'localhost',
@@ -105,13 +113,16 @@ router.post('/query/:table',  function(req, res, next) {
       console.log(err);
     });
     connection.query(req.body.query, function(err, rows) {
-        console.log(err);
-        tables = rows;
-        //console.log(tables);
-        var jsoned = Object.values(JSON.parse(JSON.stringify(tables)));
-        console.log(jsoned);
-        connection.release();
-        res.send(jsoned);
+        if(err){
+          res.send(null)
+        }else{
+          //console.log(rows);
+          //console.log(tables);
+          var jsoned = Object.values(JSON.parse(JSON.stringify(rows)));
+          console.log(jsoned);
+          connection.release();
+          res.send(jsoned);
+        }
     });
   });
 });
@@ -142,22 +153,38 @@ router.get('/get-tables',  function(req, res, next) {
 });
 
 router.get('/show-function',  function(req, res, next) {
+  console.log("entered");
   co_db.getConnection(function(err, connection) {
-    co_db.query("use biat_report;", function(err, rows) {
-      console.log(err);
-    });
     co_db.query("SELECT * from function;", function(err, rows) {
-        console.log(err);
+        
+        if(err){console.log(err); res.send(null)}
         res.send(rows)
     });
   });
 });
+router.get('/nbrwrongFunction',  function(req, res, next) {
+  console.log("entered");
+  co_db.getConnection(function(err, connection) {
+    co_db.query("SELECT count(*) from function where status='0';", function(err, number) {
+        
+        if(err){console.log(err); res.send(null)}
+        res.send(number)
+    });
+  });
+});
+
+router.get('/update-fn-status/:id/:bool',  function(req, res, next) {
+  co_db.query(`update function set status=${req.params.bool} where id= ${req.params.id};`, function(err, rows) {
+    console.log(err);
+    res.send("fine")
+});
+})
 router.get('/get-function/:id',  function(req, res, next) {
   co_db.getConnection(function(err, connection) {
     co_db.query("use biat_report;", function(err, rows) {
       console.log(err);
     });
-    co_db.query("SELECT * from function where id=" +req.params.id+ ";", function(err, rows) {
+    co_db.query(`SELECT * from function where id=${req.params.id};`, function(err, rows) {
         console.log(err);
         res.send(rows[0])
     });
@@ -168,18 +195,27 @@ router.post('/add-function',  function(req, res, next) {
     co_db.query("use biat_report;", function(err, rows) {
       console.log(err);
     });
-    co_db.query("insert into function (query, status, name) values (\""+req.body.query+ "\" , " + req.body.status +" ,\"" + req.body.name + "\" );", function(err, rows) {
+    co_db.query('insert into function (query, query_error, status, name) values (\''+req.body.query+'\', \''+ req.body.query_error+'\', '+ req.body.status +' ,\'' + req.body.name + '\');', function(err, rows) {
         console.log(err);
         res.send("done")
     });
   });
 });
 router.post('/mod-function/:id',  function(req, res, next) {
+  console.log(req.body.query_error);
   co_db.getConnection(function(err, connection) {
     co_db.query("use biat_report;", function(err, rows) {
       console.log(err);
     });
-    co_db.query("update function set query=\""+req.body.query+"\", name=\""+req.body.name+"\" where id="+req.params.id+";", function(err, rows) {
+    co_db.query('update function set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
+        console.log(err)
+        res.send("done")
+    });
+  });
+});
+router.delete('/delete-function/:id',  function(req, res, next) {
+  co_db.getConnection(function(err, connection) {
+    co_db.query("delete from function where id="+req.params.id + ";", function(err, rows) {
         console.log(err);
         res.send("done")
     });
