@@ -30,14 +30,15 @@ let connection = mysql.createPool({
   user: 'root',
   password: '',
   database:'biat',
-  multipleStatements: true
+  multipleStatements: true,
 });
 let co_db = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',
   database:'biat_report',
-  multipleStatements: true
+  multipleStatements: true,
+  connectionLimit : 10,
 });
 router.post('/upload', upload.single('file'),  function(req, res, next) {
   //-----
@@ -108,30 +109,26 @@ router.post('/query/:table',  function(req, res, next) {
   console.log(req.body.query);
   console.log(req.params.table);
   const dbname = fs.readFileSync('./dbname', 'utf8')
-  connection.getConnection(function(err, connection) {
-    connection.query("use " + dbname + " ;", function(err, rows) {
-      console.log(err);
-    });
-    connection.query(req.body.query, function(err, rows) {
-        if(err){
-          res.send(null)
-        }else{
-          //console.log(rows);
-          //console.log(tables);
-          var jsoned = Object.values(JSON.parse(JSON.stringify(rows)));
-          console.log(jsoned);
-          connection.release();
-          res.send(jsoned);
-        }
-    });
+  connection.query("use " + dbname + " ;", function(err, rows) {
+    if(err) throw err
   });
-});
+  connection.query(req.body.query, function(err, rows) {
+      if(err){
+        res.send(null)
+      }else{
+        //console.log(rows);
+        //console.log(tables);
+        var jsoned = Object.values(JSON.parse(JSON.stringify(rows)));
+        console.log(jsoned);
+        res.send(jsoned);
+      }
+  });
+  });
 router.get('/get-tables',  function(req, res, next) {
   var dbname;
   let tables;
   const data = fs.readFileSync('./dbname', 'utf8')
   dbname = data;
-  connection.getConnection(function(err, connection) {
     connection.query("use " + dbname + " ;", function(err, rows) {
       console.log(err);
     });
@@ -139,7 +136,6 @@ router.get('/get-tables',  function(req, res, next) {
         console.log(err);
         tables = rows;
         //console.log(tables);
-        connection.release();
         var all = [];
         var jsoned = Object.values(JSON.parse(JSON.stringify(tables)));
         console.log(jsoned);
@@ -149,49 +145,43 @@ router.get('/get-tables',  function(req, res, next) {
         });
         res.send(all)
     });
-  });
 });
 
 router.get('/show-function',  function(req, res, next) {
   console.log("entered");
-  co_db.getConnection(function(err, connection) {
-    co_db.query("SELECT * from function;", function(err, rows) {
-        
-        if(err){console.log(err); res.send(null)}
-        res.send(rows)
-    });
+  console.log("cnx");
+  co_db.query("SELECT * from function;", function(err, rows) {
+      if(err) throw err 
+      console.log("in show")
+      res.send(rows)
   });
+  console.log("finish");
 });
 router.get('/nbrwrongFunction',  function(req, res, next) {
   console.log("entered");
-  co_db.getConnection(function(err, connection) {
     co_db.query("SELECT count(*) from function where status='0';", function(err, number) {
         
         if(err){console.log(err); res.send(null)}
         res.send(number)
     });
-  });
 });
 
 router.get('/update-fn-status/:id/:bool',  function(req, res, next) {
   co_db.query(`update function set status=${req.params.bool} where id= ${req.params.id};`, function(err, rows) {
-    console.log(err);
-    res.send("fine")
-});
+    if(err) throw err 
+    res.send("updated status!")
+  });
 })
 router.get('/get-function/:id',  function(req, res, next) {
-  co_db.getConnection(function(err, connection) {
-    co_db.query("use biat_report;", function(err, rows) {
-      console.log(err);
-    });
-    co_db.query(`SELECT * from function where id=${req.params.id};`, function(err, rows) {
-        console.log(err);
-        res.send(rows[0])
-    });
+  co_db.query("use biat_report;", function(err, rows) {
+    if(err) throw err
+  });
+  co_db.query(`SELECT * from function where id=${req.params.id};`, function(err, rows) {
+      if(err) throw err
+      res.send(rows[0])
   });
 });
 router.post('/add-function',  function(req, res, next) {
-  co_db.getConnection(function(err, connection) {
     co_db.query("use biat_report;", function(err, rows) {
       console.log(err);
     });
@@ -199,11 +189,9 @@ router.post('/add-function',  function(req, res, next) {
         console.log(err);
         res.send("done")
     });
-  });
 });
 router.post('/mod-function/:id',  function(req, res, next) {
   console.log(req.body.query_error);
-  co_db.getConnection(function(err, connection) {
     co_db.query("use biat_report;", function(err, rows) {
       console.log(err);
     });
@@ -211,14 +199,11 @@ router.post('/mod-function/:id',  function(req, res, next) {
         console.log(err)
         res.send("done")
     });
-  });
 });
 router.delete('/delete-function/:id',  function(req, res, next) {
-  co_db.getConnection(function(err, connection) {
     co_db.query("delete from function where id="+req.params.id + ";", function(err, rows) {
         console.log(err);
         res.send("done")
     });
-  });
 });
 module.exports = router;

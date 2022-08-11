@@ -10,6 +10,7 @@ var usersRouter = require('./routes/users');
 var app = express();
 const cors = require('cors');
 app.use(cors());
+app.disable('etag');
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
