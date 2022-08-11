@@ -31,6 +31,7 @@ let connection = mysql.createPool({
   password: '',
   database:'biat',
   multipleStatements: true,
+  connectionLimit : 10
 });
 let co_db = mysql.createPool({
   host: 'localhost',
@@ -158,10 +159,9 @@ router.get('/show-function',  function(req, res, next) {
   console.log("finish");
 });
 router.get('/nbrwrongFunction',  function(req, res, next) {
-  console.log("entered");
-    co_db.query("SELECT count(*) from function where status='0';", function(err, number) {
-        
-        if(err){console.log(err); res.send(null)}
+    co_db.query("SELECT count(*) as n from function where status='0';", function(err, number) {
+        if(err) throw err
+        console.log(number);
         res.send(number)
     });
 });
