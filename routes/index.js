@@ -4,7 +4,8 @@ var app = express();
 const multer  = require('multer')
 const fs = require('fs');
 const reader = require('xlsx')
-const mysql = require('mysql');
+//const mysql = require('mysql');
+const Pool = require('pg').Pool
 const upload = multer({ dest: 'uploads/' })
 const https = require('https');
 const path = require('path');
@@ -25,18 +26,20 @@ router.get('/r', function(req, res, next) {
     res.send("restarting...");
   });
 });
-let connection = mysql.createPool({
+let connection = new Pool({
   host: 'localhost',
-  user: 'root',
-  password: '',
+  user: 'postgres',
+  password: 'root',
   database:'biat',
+  port: 5432,
   multipleStatements: true,
   connectionLimit : 10
 });
-let co_db = mysql.createPool({
+let co_db = new Pool({
   host: 'localhost',
-  user: 'root',
-  password: '',
+  user: 'postgres',
+  password: 'root',
+  port: 5432,
   database:'biat_report',
   multipleStatements: true,
   connectionLimit : 10,
@@ -109,17 +112,17 @@ router.get('/file-content',  function(req, res, next) {
 router.post('/query/:table',  function(req, res, next) {
   console.log(req.body.query);
   console.log(req.params.table);
-  const dbname = fs.readFileSync('./dbname', 'utf8')
+  /*const dbname = fs.readFileSync('./dbname', 'utf8')
   connection.query("use " + dbname + " ;", function(err, rows) {
     if(err) throw err
-  });
+  });*/
   connection.query(req.body.query, function(err, rows) {
       if(err){
         res.send(null)
       }else{
         //console.log(rows);
         //console.log(tables);
-        var jsoned = Object.values(JSON.parse(JSON.stringify(rows)));
+        var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
         console.log(jsoned);
         res.send(jsoned);
       }
@@ -128,15 +131,15 @@ router.post('/query/:table',  function(req, res, next) {
 router.get('/get-tables',  function(req, res, next) {
   var dbname;
   let tables;
-  const data = fs.readFileSync('./dbname', 'utf8')
+  /*const data = fs.readFileSync('./dbname', 'utf8')
   dbname = data;
     connection.query("use " + dbname + " ;", function(err, rows) {
       console.log(err);
-    });
-    connection.query("SELECT table_name FROM information_schema.tables WHERE table_schema ='"+dbname+"';", function(err, rows) {
+    });*/
+    connection.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;", function(err, rows) {
         console.log(err);
-        tables = rows;
-        //console.log(tables);
+        tables = rows.rows;
+        console.log(tables);
         var all = [];
         var jsoned = Object.values(JSON.parse(JSON.stringify(tables)));
         console.log(jsoned);
@@ -154,7 +157,8 @@ router.get('/show-function',  function(req, res, next) {
   co_db.query("SELECT * from function;", function(err, rows) {
       if(err) throw err 
       console.log("in show")
-      res.send(rows)
+      console.log(rows.rows)
+      res.send(rows.rows)
   });
   console.log("finish");
 });
@@ -173,18 +177,13 @@ router.get('/update-fn-status/:id/:bool',  function(req, res, next) {
   });
 })
 router.get('/get-function/:id',  function(req, res, next) {
-  co_db.query("use biat_report;", function(err, rows) {
-    if(err) throw err
-  });
   co_db.query(`SELECT * from function where id=${req.params.id};`, function(err, rows) {
       if(err) throw err
-      res.send(rows[0])
+      console.log(rows.rows)
+      res.send(rows.rows[0])
   });
 });
 router.post('/add-function',  function(req, res, next) {
-    co_db.query("use biat_report;", function(err, rows) {
-      console.log(err);
-    });
     co_db.query('insert into function (query, query_error, status, name) values (\''+req.body.query+'\', \''+ req.body.query_error+'\', '+ req.body.status +' ,\'' + req.body.name + '\');', function(err, rows) {
         console.log(err);
         res.send("done")
@@ -192,9 +191,6 @@ router.post('/add-function',  function(req, res, next) {
 });
 router.post('/mod-function/:id',  function(req, res, next) {
   console.log(req.body.query_error);
-    co_db.query("use biat_report;", function(err, rows) {
-      console.log(err);
-    });
     co_db.query('update function set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
         console.log(err)
         res.send("done")
