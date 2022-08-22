@@ -29,7 +29,7 @@ router.get('/r', function(req, res, next) {
 let connection = new Pool({
   host: 'localhost',
   user: 'postgres',
-  password: 'root',
+  password: '0000',
   database:'biat',
   port: 5432,
   multipleStatements: true,
@@ -38,7 +38,7 @@ let connection = new Pool({
 let co_db = new Pool({
   host: 'localhost',
   user: 'postgres',
-  password: 'root',
+  password: '0000',
   port: 5432,
   database:'biat_report',
   multipleStatements: true,
@@ -166,7 +166,7 @@ router.get('/nbrwrongFunction',  function(req, res, next) {
     co_db.query("SELECT count(*) as n from function where status='0';", function(err, number) {
         if(err) throw err
         console.log(number);
-        res.send(number)
+        res.send(number.rows)
     });
 });
 
