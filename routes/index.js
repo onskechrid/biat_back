@@ -110,17 +110,11 @@ router.get('/file-content',  function(req, res, next) {
 });
 
 router.post('/query/:table',  function(req, res, next) {
-  console.log(req.body.query);
-  console.log(req.params.table);
-  /*const dbname = fs.readFileSync('./dbname', 'utf8')
-  connection.query("use " + dbname + " ;", function(err, rows) {
-    if(err) throw err
-  });*/
   connection.query(req.body.query, function(err, rows) {
       if(err){
-        res.send(null)
+        throw err
       }else{
-        //console.log(rows);
+        console.log(rows.rows);
         //console.log(tables);
         var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
         console.log(jsoned);
