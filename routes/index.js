@@ -148,7 +148,7 @@ router.get('/get-tables',  function(req, res, next) {
 router.get('/show-function',  function(req, res, next) {
   console.log("entered");
   console.log("cnx");
-  co_db.query("SELECT * from function;", function(err, rows) {
+  co_db.query(`SELECT * from public. "function";`, function(err, rows) {
       if(err) throw err 
       console.log("in show")
       console.log(rows.rows)
@@ -157,7 +157,7 @@ router.get('/show-function',  function(req, res, next) {
   console.log("finish");
 });
 router.get('/nbrwrongFunction',  function(req, res, next) {
-    co_db.query("SELECT count(*) as n from function where status='0';", function(err, number) {
+    co_db.query(`SELECT count(*) as n from public. "function" where status='0';`, function(err, number) {
         if(err) throw err
         console.log(number);
         res.send(number.rows)
@@ -165,33 +165,33 @@ router.get('/nbrwrongFunction',  function(req, res, next) {
 });
 
 router.get('/update-fn-status/:id/:bool',  function(req, res, next) {
-  co_db.query(`update function set status=${req.params.bool} where id= ${req.params.id};`, function(err, rows) {
+  co_db.query(`update public. "function" set status=${req.params.bool} where id= ${req.params.id};`, function(err, rows) {
     if(err) throw err 
     res.send("updated status!")
   });
 })
 router.get('/get-function/:id',  function(req, res, next) {
-  co_db.query(`SELECT * from function where id=${req.params.id};`, function(err, rows) {
+  co_db.query(`SELECT * from public. "function" where id=${req.params.id};`, function(err, rows) {
       if(err) throw err
       console.log(rows.rows)
       res.send(rows.rows[0])
   });
 });
 router.post('/add-function',  function(req, res, next) {
-    co_db.query('insert into function (query, query_error, status, name) values (\''+req.body.query+'\', \''+ req.body.query_error+'\', '+ req.body.status +' ,\'' + req.body.name + '\');', function(err, rows) {
+    co_db.query('insert into public. "function" (query, query_error, status, name) values (\''+req.body.query+'\', \''+ req.body.query_error+'\', '+ req.body.status +' ,\'' + req.body.name + '\');', function(err, rows) {
         console.log(err);
         res.send("done")
     });
 });
 router.post('/mod-function/:id',  function(req, res, next) {
   console.log(req.body.query_error);
-    co_db.query('update function set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
+    co_db.query('update public. "function" set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
         console.log(err)
         res.send("done")
     });
 });
 router.delete('/delete-function/:id',  function(req, res, next) {
-    co_db.query("delete from function where id="+req.params.id + ";", function(err, rows) {
+    co_db.query(`delete from public. "function" where id=`+req.params.id + `;`, function(err, rows) {
         console.log(err);
         res.send("done")
     });
