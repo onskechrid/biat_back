@@ -183,10 +183,12 @@ router.post('/add-function',  function(req, res, next) {
         y++;
       }
     }
-    return y;
+    return str;
   }
   let q1 = sanitize(req.body.query)
   let q2 = sanitize(req.body.query_error)
+  console.log(q1)
+  console.log(q2)
   let strr = "insert into function (id, query, query_error, status, name) values ("+(Math.random() * (500000 - 500) + 500000)+" , \'"+q1+"\', \'"+ q2+"\', "+ req.body.status +" , \'" + req.body.name + "\');";
   console.log(strr);  
   co_db.query(strr, function(err, rows) {
@@ -195,8 +197,18 @@ router.post('/add-function',  function(req, res, next) {
     });
 });
 router.post('/mod-function/:id',  function(req, res, next) {
+  function sanitize(str){
+    for(let y = 0; y<=str.length-1; y++){
+      if(str[y] == "'"){
+        str = str.slice(0, y) + "'" + str.slice(y);
+        y++;
+      }
+    }
+    console.log(str);
+    return str;
+  }
   console.log(req.body.query_error);
-    co_db.query('update public. "function" set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
+    co_db.query("update function set last_edit=now() ,query_error=\'" + sanitize(req.body.query_error) + "\',  query=\'"+ sanitize(req.body.query) +"\', name=\'"+ req.body.name+"\' where id="+ req.params.id +";", function(err, rows) {
         console.log(err)
         res.send("done")
     });
