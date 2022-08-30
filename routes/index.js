@@ -29,7 +29,7 @@ router.get('/r', function(req, res, next) {
 let connection = new Pool({
   host: 'localhost',
   user: 'postgres',
-  password: '0000',
+  password: 'root',
   database:'biat',
   port: 5432,
   multipleStatements: true,
@@ -38,7 +38,7 @@ let connection = new Pool({
 let co_db = new Pool({
   host: 'localhost',
   user: 'postgres',
-  password: '0000',
+  password: 'root',
   port: 5432,
   database:'biat_report',
   multipleStatements: true,
@@ -112,12 +112,12 @@ router.get('/file-content',  function(req, res, next) {
 router.post('/query/:table',  function(req, res, next) {
   connection.query(req.body.query, function(err, rows) {
       if(err){
-        throw err
+        res.send(null)
       }else{
-        console.log(rows.rows);
+        //console.log(rows.rows);
         //console.log(tables);
         var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
-        console.log(jsoned);
+        //console.log(jsoned);
         res.send(jsoned);
       }
   });
@@ -146,12 +146,10 @@ router.get('/get-tables',  function(req, res, next) {
 });
 
 router.get('/show-function',  function(req, res, next) {
-  console.log("entered");
-  console.log("cnx");
   co_db.query(`SELECT * from public. "function";`, function(err, rows) {
       if(err) throw err 
-      console.log("in show")
-      console.log(rows.rows)
+      //console.log("in show")
+      //console.log(rows.rows)
       res.send(rows.rows)
   });
   console.log("finish");
@@ -178,8 +176,21 @@ router.get('/get-function/:id',  function(req, res, next) {
   });
 });
 router.post('/add-function',  function(req, res, next) {
-    co_db.query('insert into public. "function" (query, query_error, status, name) values (\''+req.body.query+'\', \''+ req.body.query_error+'\', '+ req.body.status +' ,\'' + req.body.name + '\');', function(err, rows) {
-        console.log(err);
+  function sanitize(str){
+    for(let y = 0; y<=str.length-1; y++){
+      if(str[y] == "'"){
+        str = str.slice(0, y) + "'" + str.slice(y);
+        y++;
+      }
+    }
+    return y;
+  }
+  let q1 = sanitize(req.body.query)
+  let q2 = sanitize(req.body.query_error)
+  let strr = "insert into function (id, query, query_error, status, name) values ("+(Math.random() * (500000 - 500) + 500000)+" , \'"+q1+"\', \'"+ q2+"\', "+ req.body.status +" , \'" + req.body.name + "\');";
+  console.log(strr);  
+  co_db.query(strr, function(err, rows) {
+        console.log(rows);
         res.send("done")
     });
 });
