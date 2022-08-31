@@ -112,12 +112,12 @@ router.get('/file-content',  function(req, res, next) {
 router.post('/query/:table',  function(req, res, next) {
   connection.query(req.body.query, function(err, rows) {
       if(err){
-        throw err
+        res.send(null)
       }else{
-        console.log(rows.rows);
+        //console.log(rows.rows);
         //console.log(tables);
         var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
-        console.log(jsoned);
+        //console.log(jsoned);
         res.send(jsoned);
       }
   });
@@ -146,12 +146,10 @@ router.get('/get-tables',  function(req, res, next) {
 });
 
 router.get('/show-function',  function(req, res, next) {
-  console.log("entered");
-  console.log("cnx");
-  co_db.query(`select * from function;`, function(err, rows) {
+  co_db.query(`SELECT * from public. "function";`, function(err, rows) {
       if(err) throw err 
-      console.log("in show")
-      console.log(rows.rows)
+      //console.log("in show")
+      //console.log(rows.rows)
       res.send(rows.rows)
   });
   console.log("finish");
@@ -178,15 +176,41 @@ router.get('/get-function/:id',  function(req, res, next) {
   });
 });
 router.post('/add-function',  function(req, res, next) {
-    co_db.query(`insert into "function" (query, query_error, status, name) values (\'`+req.body.query+`\', \'`+
-     req.body.query_error+`\', `+ req.body.status +` ,\'` + req.body.name + `\')`, function(err, rows) {
-        console.log(err);
+  function sanitize(str){
+    for(let y = 0; y<=str.length-1; y++){
+      if(str[y] == "'"){
+        str = str.slice(0, y) + "'" + str.slice(y);
+        y++;
+      }
+    }
+    return str;
+  }
+  let q1 = sanitize(req.body.query)
+   console.log(q1)
+  let q2 = sanitize(req.body.query_error)
+  console.log(q1)
+  console.log(q2)
+  let strr = `insert into public."function" ( query, query_error, status, name) values (\'`+q1+`\', \'`+ q2+`\', `+ req.body.status +` , \'` + 
+  req.body.name + `\');`;
+  console.log(strr);  
+  co_db.query(strr, function(err, rows) {
+        console.log(rows);
         res.send("done")
     });
 });
 router.post('/mod-function/:id',  function(req, res, next) {
+  function sanitize(str){
+    for(let y = 0; y<=str.length-1; y++){
+      if(str[y] == "'"){
+        str = str.slice(0, y) + "'" + str.slice(y);
+        y++;
+      }
+    }
+    console.log(str);
+    return str;
+  }
   console.log(req.body.query_error);
-    co_db.query('update public. "function" set last_edit=CURRENT_TIMESTAMP() ,query_error=\'' + req.body.query_error + '\',  query=\''+ req.body.query +'\', name=\''+ req.body.name +'\' where id='+ req.params.id +';', function(err, rows) {
+    co_db.query("update function set last_edit=now() ,query_error=\'" + sanitize(req.body.query_error) + "\',  query=\'"+ sanitize(req.body.query) +"\', name=\'"+ req.body.name+"\' where id="+ req.params.id +";", function(err, rows) {
         console.log(err)
         res.send("done")
     });
