@@ -185,11 +185,15 @@ router.post('/add-function',  function(req, res, next) {
     }
     return str;
   }
+  let q2 ="";
   let q1 = sanitize(req.body.query)
    console.log(q1)
-  let q2 = sanitize(req.body.query_error)
-  console.log(q1)
-  console.log(q2)
+   if(q2.length == 0){
+    q2 = "";
+   }else{
+    q2 = sanitize(req.body.query_error)
+    console.log(q2)
+   }
   let strr = `INSERT INTO public."function" (id, query, status, "name", query_error) values (`+Math.random()*(50000-500+1)+`, '`+q1+`',`+ req.body.status+`, '`+ req.body.name +`' , '` +q2+ `');`;
   console.log(strr);  
   console.log("ons");
