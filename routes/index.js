@@ -13,6 +13,7 @@ const xlsx = require('xlsx');
 const FileSaver = require('file-saver')
 const Blob = require('node-blob');
 var pm2 = require('pm2');
+const { table } = require('console');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -307,21 +308,47 @@ router.get('/lib4/:refcrdt',  function(req, res, next) {
 });
 /********************************************************************************** */
 
-router.post('/query/:clicked_filtre/:value/:datasit',  function(req, res, next) {
-  connection.query(`${req.body.query} where '${req.params.clicked_filtre}'='${req.params.value}' AND "DAT_SIT"='${req.params.datasit}';`, function(err, rows) {
-      if(err){
-        res.send(null)
-        console.log("rrrr")
-      }else{
-        //console.log(rows.rows);
-        //console.log(tables);
-        var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
-        //console.log(jsoned);
-        res.send(jsoned);
-        console.log("rrrr222")
-      }
+router.post('/query/:table',  function(req, res, next) {
+  connection.query(req.body.query, function(err, rows) {
+    console.log(req.body.query)
+    if(err){
+      res.send(null)
+    }else{
+      var jsoned = Object.values(JSON.parse(JSON.stringify(rows.rows)));
+      res.send(jsoned);
+    }
+});
+});
+
+router.get('/total/:id/:datsit',  function(req, res, next) {
+  connection.query(`select sum(  "MONT_ENCR_REDR_TND") from
+  ( select a."CUST" , "COMP" ,"Comp_CTOS", "REF_CONT"  ,"LIB_LONG" , a."CATG" , "TYPE_ENG" , "CODE_TYP_ENCR" , a."STATUT", "MONT_ENCR_REDR_TND" from
+  ( select a.* ,c."CUST" , "LIB_LONG"  , "CATG", "TYPE_ENG", "REF_CRDT", "COMP"
+  fROM
+  (select * from "E_ENCOURS" ee  where "DAT_SIT" =${req.params.datsit} and "DERSIT" =1 and "STATUT" ='A' /*and substring("REF_CONT",1,2) not in ('CX') */) A ,
+  "R_TYPE_ENCOUR" B  ,
+  (select * from "E_CONTRAT" ec where "DERSIT" =1) C
+  where A."CODE_TYP_ENCR"= B."ID" and A."REF_CONT" = C."REF_CONT"
+  ) a , ( select * from "E_ACCOUNT" ea where "DERSIT" =1 ) b
+  where a."COMP" = B."ID"
+  ) aa ,  "R_CODE_ENG" b where "CUST" ='${req.params.id}' and aa."TYPE_ENG"=B."ID";`, function(err, rows) {
+   console.log(`select sum(  "MONT_ENCR_REDR_TND") from
+   ( select a."CUST" , "COMP" ,"Comp_CTOS", "REF_CONT"  ,"LIB_LONG" , a."CATG" , "TYPE_ENG" , "CODE_TYP_ENCR" , a."STATUT", "MONT_ENCR_REDR_TND" from
+   ( select a.* ,c."CUST" , "LIB_LONG"  , "CATG", "TYPE_ENG", "REF_CRDT", "COMP"
+   fROM
+   (select * from "E_ENCOURS" ee  where "DAT_SIT" =${req.params.datsit} and "DERSIT" =1 and "STATUT" ='A' /*and substring("REF_CONT",1,2) not in ('CX') */) A ,
+   "R_TYPE_ENCOUR" B  ,
+   (select * from "E_CONTRAT" ec where "DERSIT" =1) C
+   where A."CODE_TYP_ENCR"= B."ID" and A."REF_CONT" = C."REF_CONT"
+   ) a , ( select * from "E_ACCOUNT" ea where "DERSIT" =1 ) b
+   where a."COMP" = B."ID"
+   ) aa ,  "R_CODE_ENG" b where "CUST" ='${req.params.id}' and aa."TYPE_ENG"=B."ID";`)
+    console.log(rows.rows[0])
+    res.send(rows.rows[0])
   });
 });
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 router.get('/alldatsit', function(req, res, next){
   connection.query(`select "DAT_SIT" from public."E_ENCOURS" order by "DAT_SIT" DESC;`, function(err, rows){
